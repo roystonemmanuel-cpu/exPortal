@@ -209,11 +209,15 @@ VALUES (
   v_stimulus_id,
   v_school_id,
   'The Breadfruit Tree',
-  E'Maya loved the big breadfruit tree in her grandmother''s yard in Saint Lucia.\n\n'
-  E'Every Saturday morning, she helped Granny pick the round, green fruits that had fallen overnight. They were heavy and bumpy, almost like small footballs.\n\n'
-  E'"Granny," said Maya, "how do you know when a breadfruit is ready to eat?"\n\n'
-  E'Granny smiled and pressed her thumb gently into the skin of one fruit. "When it gives a little, like this," she said, "it is ready. If it is hard like a stone, we must wait."\n\n'
-  E'That evening, Granny roasted two breadfruits over a coal pot until the skin turned black. Inside, the flesh was soft and white, and it smelled like fresh bread. Maya ate two slices and decided it was the best thing she had ever tasted.',
+  $passage$Maya loved the big breadfruit tree in her grandmother's yard in Saint Lucia.
+
+Every Saturday morning, she helped Granny pick the round, green fruits that had fallen overnight. They were heavy and bumpy, almost like small footballs.
+
+"Granny," said Maya, "how do you know when a breadfruit is ready to eat?"
+
+Granny smiled and pressed her thumb gently into the skin of one fruit. "When it gives a little, like this," she said, "it is ready. If it is hard like a stone, we must wait."
+
+That evening, Granny roasted two breadfruits over a coal pot until the skin turned black. Inside, the flesh was soft and white, and it smelled like fresh bread. Maya ate two slices and decided it was the best thing she had ever tasted.$passage$,
   v_admin_id
 ) ON CONFLICT (id) DO NOTHING;
 

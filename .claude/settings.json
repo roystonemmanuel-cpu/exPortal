@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test:*)",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(vercel --yes --name exportal)",
+      "Bash(convert --version)",
+      "Bash(sips -s format png /Users/roystonemmanuel/Desktop/exPortal/public/icons/icon-192.svg --out /Users/roystonemmanuel/Desktop/exPortal/public/icons/icon-192.png)",
+      "Bash(sips -s format png /Users/roystonemmanuel/Desktop/exPortal/public/icons/icon-512.svg --out /Users/roystonemmanuel/Desktop/exPortal/public/icons/icon-512.png)"
+    ]
+  }
+}
