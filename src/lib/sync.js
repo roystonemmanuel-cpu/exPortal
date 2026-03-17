@@ -9,7 +9,7 @@ let syncInProgress = false;
  * @returns {Promise<{synced: number, failed: number}>}
  */
 export async function syncResponses() {
-  if (syncInProgress) return { synced: 0, failed: 0 };
+  if (!supabase || syncInProgress) return { synced: 0, failed: 0 };
   syncInProgress = true;
 
   try {

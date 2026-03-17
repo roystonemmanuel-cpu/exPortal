@@ -27,6 +27,11 @@ const useSessionStore = create((set, get) => ({
 
   /** Bootstrap: restore auth state from Supabase and local IndexedDB. */
   init: async () => {
+    if (!supabase) {
+      set({ authStatus: 'unauthenticated' });
+      return;
+    }
+
     const { data: { session } } = await supabase.auth.getSession();
 
     if (session?.user) {
@@ -36,7 +41,6 @@ const useSessionStore = create((set, get) => ({
       set({ authStatus: 'unauthenticated' });
     }
 
-    // Listen for auth changes
     supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const profile = await getCurrentProfile();
@@ -54,6 +58,8 @@ const useSessionStore = create((set, get) => ({
    * @returns {Promise<{success:boolean, error?:string}>}
    */
   claimStudentSeat: async (pin, sessionId) => {
+    if (!supabase) return { success: false, error: 'Offline mode — cannot validate PIN against server.' };
+
     const { data, error } = await supabase
       .from('student_sessions')
       .select('id, session_id, student_pin, student_name, emis_student_id')
@@ -74,11 +80,10 @@ const useSessionStore = create((set, get) => ({
       emisStudentId: data.emis_student_id,
     };
 
-    // Persist locally so the student can continue offline
     await saveSession({
       id: data.id,
       studentPin: pin,
-      schoolId: '', // filled from exam package
+      schoolId: '',
       status: 'active',
     });
 
@@ -108,7 +113,7 @@ const useSessionStore = create((set, get) => ({
   clearStudentSession: () => set({ studentSession: null }),
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     set({ user: null, profile: null, studentSession: null, authStatus: 'unauthenticated' });
   },
 }));

@@ -25,6 +25,7 @@ export function useSchoolResults(schoolId, filters = {}) {
   return useQuery({
     queryKey: ['school-results', schoolId, filters],
     queryFn: async () => {
+      if (!supabase) return { results: [], summary: [] };
       // Fetch all released responses with session + student info
       let q = supabase
         .from('student_sessions')
