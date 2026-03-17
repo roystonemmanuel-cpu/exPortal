@@ -10,17 +10,53 @@
 --   • 1 published exam  (Grade 3 Mathematics, 15 questions)
 --   • 1 scheduled session  (with 5 student seats + PINs)
 --
--- NOTE: auth.users rows must be created via Supabase Auth Admin API or
---       the Supabase dashboard — you cannot INSERT into auth.users directly
---       in production. The UUIDs below are fixed so the seed is deterministic.
---       Replace with real UUIDs after creating the auth users.
---
 -- Usage:
 --   supabase db reset          (local dev — runs migrations then seed)
---   psql $DATABASE_URL < seed.sql   (remote — run after migrations)
+--   psql $DATABASE_URL < seed.sql   (remote — run as superuser after migrations)
+--
+-- NOTE on production/cloud Supabase:
+--   Direct INSERT into auth.users requires superuser privileges.
+--   On the Supabase cloud dashboard you must create users via
+--   Authentication → Users → "Add user", then update the UUIDs below to match.
 -- =============================================================================
 
--- ─── Fixed UUIDs (replace after creating auth users) ─────────────────────────
+-- ─── 0. School — must exist before auth.users (trigger creates profiles using school_id) ───
+
+INSERT INTO schools (id, name, country_code, emis_id)
+VALUES ('a1b2c3d4-0001-0001-0001-000000000001', 'Roseau Primary School', 'DM', 'DM-RPR-001')
+ON CONFLICT (id) DO NOTHING;
+
+-- ─── 1. Auth users — trigger handle_new_user() fires here and creates profiles ───
+-- School must already exist above or the trigger's FK check on school_id fails.
+
+INSERT INTO auth.users (
+  id, email, encrypted_password, email_confirmed_at,
+  raw_user_meta_data, created_at, updated_at, role, aud,
+  confirmation_token, recovery_token, email_change_token_new, email_change
+)
+VALUES
+(
+  'a1b2c3d4-0002-0002-0002-000000000002',
+  'admin@roseauprimary.edu.dm',
+  crypt('ChangeMe123!', gen_salt('bf')),
+  now(),
+  '{"role":"admin","school_id":"a1b2c3d4-0001-0001-0001-000000000001","full_name":"Ms. Carla Benjamin"}'::jsonb,
+  now(), now(), 'authenticated', 'authenticated',
+  '', '', '', ''
+),
+(
+  'a1b2c3d4-0003-0003-0003-000000000003',
+  'darius@roseauprimary.edu.dm',
+  crypt('ChangeMe123!', gen_salt('bf')),
+  now(),
+  '{"role":"invigilator","school_id":"a1b2c3d4-0001-0001-0001-000000000001","full_name":"Mr. Darius Joseph"}'::jsonb,
+  now(), now(), 'authenticated', 'authenticated',
+  '', '', '', ''
+)
+ON CONFLICT (id) DO NOTHING;
+-- Profiles are now created automatically by the handle_new_user() trigger above.
+
+-- ─── 2. Remaining seed data ───────────────────────────────────────────────────
 
 DO $$
 DECLARE
@@ -49,25 +85,6 @@ DECLARE
   v_session_id    UUID := 'a1b2c3d4-0040-0001-0001-000000000001';
 
 BEGIN
-
--- =============================================================================
--- School
--- =============================================================================
-
-INSERT INTO schools (id, name, country_code, emis_id)
-VALUES (v_school_id, 'Roseau Primary School', 'DM', 'DM-RPR-001')
-ON CONFLICT (id) DO NOTHING;
-
--- =============================================================================
--- Profiles
--- (auth.users rows must already exist with these UUIDs before this seed runs)
--- =============================================================================
-
-INSERT INTO profiles (id, role, school_id, full_name)
-VALUES
-  (v_admin_id,  'admin',        v_school_id, 'Ms. Carla Benjamin'),
-  (v_invig_id,  'invigilator',  v_school_id, 'Mr. Darius Joseph')
-ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
 -- Questions — Grade 3 Mathematics
@@ -221,42 +238,35 @@ That evening, Granny roasted two breadfruits over a coal pot until the skin turn
   v_admin_id
 ) ON CONFLICT (id) DO NOTHING;
 
--- Stimulus child questions — ELA Grade 3
+-- Stimulus child questions — ELA Grade 3 (MCQ pair)
 INSERT INTO questions (id, school_id, type, stem_text, choices, correct_answer, marks, subject, grade_level, created_by)
 VALUES
 (
   q_stim1, v_school_id, 'mcq',
   'What does Maya do every Saturday morning?',
-  '[
-    {"id":"a","text":"She goes to the market with Granny."},
-    {"id":"b","text":"She helps Granny pick breadfruits."},
-    {"id":"c","text":"She roasts breadfruits over a coal pot."},
-    {"id":"d","text":"She waters the breadfruit tree."}
-  ]'::jsonb,
+  '[{"id":"a","text":"She goes to the market with Granny."},{"id":"b","text":"She helps Granny pick breadfruits."},{"id":"c","text":"She roasts breadfruits over a coal pot."},{"id":"d","text":"She waters the breadfruit tree."}]'::jsonb,
   '"b"'::jsonb,
   1, 'English Language Arts', '3', v_admin_id
 ),
 (
   q_stim2, v_school_id, 'mcq',
   'How does Granny know when a breadfruit is ready to eat?',
-  '[
-    {"id":"a","text":"The skin turns black."},
-    {"id":"b","text":"It smells like fresh bread."},
-    {"id":"c","text":"It gives a little when pressed."},
-    {"id":"d","text":"It falls from the tree by itself."}
-  ]'::jsonb,
+  '[{"id":"a","text":"The skin turns black."},{"id":"b","text":"It smells like fresh bread."},{"id":"c","text":"It gives a little when pressed."},{"id":"d","text":"It falls from the tree by itself."}]'::jsonb,
   '"c"'::jsonb,
   1, 'English Language Arts', '3', v_admin_id
-),
-(
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Stimulus child question — short answer (needs mark_scheme column, so separate INSERT)
+INSERT INTO questions (id, school_id, type, stem_text, choices, correct_answer, mark_scheme, marks, subject, grade_level, created_by)
+VALUES (
   q_stim3, v_school_id, 'short_answer',
   'How do you think Maya felt at the end of the passage? Use details from the story to support your answer.',
   NULL,
   NULL,
   'Award 1 mark for any reasonable emotion (e.g. happy, satisfied, delighted). Award 1 mark for a supporting detail from the text (e.g. "she ate two slices", "she decided it was the best thing she ever tasted"). Full marks: 2.',
   2, 'English Language Arts', '3', v_admin_id
-)
-ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO NOTHING;
 
 -- Link child questions to the stimulus
 INSERT INTO stimulus_questions (stimulus_id, question_id, "order")
