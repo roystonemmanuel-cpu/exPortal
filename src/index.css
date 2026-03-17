@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-oecs-teal: #1D9E75;
+  --color-oecs-teal-light: #E1F5EE;
+  --color-oecs-amber: #BA7517;
+  --color-oecs-amber-light: #FAEEDA;
+  --color-oecs-navy: #185FA5;
+  --color-oecs-navy-light: #E6F1FB;
+  --color-oecs-coral: #D85A30;
+  --color-oecs-coral-light: #FAECE7;
+  --color-oecs-neutral-100: #F1EFE8;
+  --color-oecs-neutral-400: #888780;
+  --color-oecs-neutral-800: #2C2C2A;
+
+  --font-size-body: 1rem;          /* 16px */
+  --line-height-body: 1.6;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-pill: 20px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #2C2C2A;
+  background-color: #F1EFE8;
+  /* Prevent pull-to-refresh during exams */
+  overscroll-behavior: none;
+}
+
+/* Minimum tap target helper */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Focus ring — accessible, not ugly */
+:focus-visible {
+  outline: 3px solid #1D9E75;
+  outline-offset: 2px;
+}
+
+/* Remove iOS input styling */
+input, textarea, select {
+  -webkit-appearance: none;
+  appearance: none;
+}
