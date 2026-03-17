@@ -1,0 +1,7 @@
+node_modules
+dev-dist
+supabase
+.claude
+src/__tests__
+*.test.js
+playwright.config.*
